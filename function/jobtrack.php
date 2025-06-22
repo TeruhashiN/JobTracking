@@ -216,13 +216,15 @@ if (!isset($_SESSION['username'])) {
                         <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#accountSettingsModal">
                           Account Settings
                         </a>
+                        <?php
+                        include '../modal/currency.php';
+                        $currencySymbol = isset($_SESSION['currency']) ? htmlspecialchars($_SESSION['currency']) : '';
+                        ?>
                         <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changeCurrencyModal">
-                          Change Currency<?= isset($_SESSION['currency']) ? ' -  ' . htmlspecialchars($_SESSION['currency']) : '' ?>
+                            Change Currency<?= $currencySymbol ? ' - ' . $currencySymbol : '' ?>
                         </a>
-
-
                         <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="../account/logout.php">Logout</a>
+                            <a class="dropdown-item" href="../account/logout.php">Logout</a>
                       </li>
                         <?php else: ?>
                           <li>
@@ -238,17 +240,166 @@ if (!isset($_SESSION['username'])) {
           </nav>
           <!-- End Navbar -->
         </div>
-
+         
         <div class="container">
           <div class="page-inner">
-            <div
-              class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4"
-            >
-              <div>
-                <h3 class="fw-bold mb-3">Job Tracking Table</h3>
+            <div class="page-header">
+              <h3 class="fw-bold mb-3">Application Progress Tracker</h3>
+            </div>                    
+              <div class="col-md-12">
+                <div class="card">
+                  <div class="card-header">
+                    <div class="d-flex align-items-center">
+                      <h4 class="card-title">Add Job Progress </h4>
+                      <button
+                        class="btn btn-primary btn-round ms-auto"
+                        data-bs-toggle="modal"
+                        data-bs-target="#addRowModal"
+                      >
+                        <i class="fa fa-plus"></i>
+                        Add Row
+                      </button>
+                    </div>
+                  </div>
+                  <div class="card-body">
+                    <!-- Modal -->
+                    <div
+                      class="modal fade"
+                      id="addRowModal"
+                      tabindex="-1"
+                      role="dialog"
+                      aria-hidden="true"
+                    >
+                      <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                          <div class="modal-header border-0">
+                            <h5 class="modal-title">
+                              <span class="fw-mediumbold"> New</span>
+                              <span class="fw-light"> Row </span>
+                            </h5>
+                            <button
+                              type="button"
+                              class="close"
+                              data-dismiss="modal"
+                              aria-label="Close"
+                            >
+                              <span aria-hidden="true">&times;</span>
+                            </button>
+                          </div>
+                          <div class="modal-body">
+                            <p class="small">
+                              Create a new row using this form, make sure you
+                              fill them all
+                            </p>
+                            <form>
+                              <div class="row">
+                                <div class="col-sm-12">
+                                  <div class="form-group form-group-default">
+                                    <label>Name</label>
+                                    <input
+                                      id="addName"
+                                      type="text"
+                                      class="form-control"
+                                      placeholder="fill name"
+                                    />
+                                  </div>
+                                </div>
+                                <div class="col-md-6 pe-0">
+                                  <div class="form-group form-group-default">
+                                    <label>Position</label>
+                                    <input
+                                      id="addPosition"
+                                      type="text"
+                                      class="form-control"
+                                      placeholder="fill position"
+                                    />
+                                  </div>
+                                </div>
+                                <div class="col-md-6">
+                                  <div class="form-group form-group-default">
+                                    <label>Office</label>
+                                    <input
+                                      id="addOffice"
+                                      type="text"
+                                      class="form-control"
+                                      placeholder="fill office"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            </form>
+                          </div>
+                          <div class="modal-footer border-0">
+                            <button
+                              type="button"
+                              id="addRowButton"
+                              class="btn btn-primary"
+                            >
+                              Add
+                            </button>
+                            <button
+                              type="button"
+                              class="btn btn-danger"
+                              data-dismiss="modal"
+                            >
+                              Close
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="table-responsive">
+                      <table
+                        id="add-row"
+                        class="display table table-striped table-hover"
+                      >
+                        <thead>
+                          <tr>
+                            <th>Name</th>
+                            <th>Position</th>
+                            <th>Office</th>
+                            <th style="width: 10%">Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td>Tiger Nixon</td>
+                            <td>System Architect</td>
+                            <td>Edinburgh</td>
+                            <td>
+                              <div class="form-button-action">
+                                <button
+                                  type="button"
+                                  data-bs-toggle="tooltip"
+                                  title=""
+                                  class="btn btn-link btn-primary btn-lg"
+                                  data-original-title="Edit Task"
+                                >
+                                  <i class="fa fa-edit"></i>
+                                </button>
+                                <button
+                                  type="button"
+                                  data-bs-toggle="tooltip"
+                                  title=""
+                                  class="btn btn-link btn-danger"
+                                  data-original-title="Remove"
+                                >
+                                  <i class="fa fa-times"></i>
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-        </div>
+          </div>
+        </div>                       
+        
 
         <!-- Login Modal -->
         <div class="modal fade" id="loginModal" tabindex="-1">
@@ -350,32 +501,13 @@ if (!isset($_SESSION['username'])) {
                 <div class="modal-body">
                   <div class="mb-3">
                     <label for="currencySelect" class="form-label">Select Currency</label>
-                      <select class="form-select" id="currencySelect" name="currency" required>
-                        <option value="" disabled selected>Select one...</option>
-                        <option value="$">$ - US Dollar</option>
-                        <option value="₱">₱ - Philippine Peso</option>
-                        <option value="€">€ - Euro</option>
-                        <option value="¥">¥ - Japanese Yen</option>
-                        <option value="£">£ - British Pound</option>
-                        <option value="A$">A$ - Australian Dollar</option>
-                        <option value="C$">C$ - Canadian Dollar</option>
-                        <option value="CHF">CHF - Swiss Franc</option>
-                        <option value="CN¥">CN¥ - Chinese Yuan</option>
-                        <option value="₹">₹ - Indian Rupee</option>
-                        <option value="₩">₩ - South Korean Won</option>
-                        <option value="S$">S$ - Singapore Dollar</option>
-                        <option value="NZ$">NZ$ - New Zealand Dollar</option>
-                        <option value="R">R - South African Rand</option>
-                        <option value="kr">kr - Swedish/Norwegian/Danish Krona</option>
-                        <option value="₽">₽ - Russian Ruble</option>
-                        <option value="₺">₺ - Turkish Lira</option>
-                        <option value="R$">R$ - Brazilian Real</option>
-                        <option value="MX$">MX$ - Mexican Peso</option>
-                        <option value="RM">RM - Malaysian Ringgit</option>
-                        <option value="Rp">Rp - Indonesian Rupiah</option>
-                        <option value="฿">฿ - Thai Baht</option>
-                        <option value="د.إ">د.إ - UAE Dirham</option>
-                      </select>
+                    <?php include '../modal/currency.php'; ?>
+                    <select class="form-select" id="currencySelect" name="currency" required>
+                    <option value="" disabled selected>Select one...</option>
+                    <?php foreach ($currencies as $value => $label): ?>
+                        <option value="<?= htmlspecialchars($value) ?>"><?= htmlspecialchars($label) ?></option>
+                    <?php endforeach; ?>
+                    </select>
                   </div>
                 </div>
                 <div class="modal-footer">
@@ -470,6 +602,8 @@ if (!isset($_SESSION['username'])) {
     <!-- Sweet Alert -->
     <script src="../assets/js/plugin/sweetalert/sweetalert.min.js"></script>
 
+    <script src="../assets/js/plugin/datatables/datatables.min.js"></script>
+
     <!-- Kaiadmin JS -->
     <script src="../assets/js/kaiadmin.min.js"></script>
 
@@ -525,7 +659,6 @@ if (!isset($_SESSION['username'])) {
         new bootstrap.Modal(document.getElementById('loginErrorModal')).show();
       }
     </script>
-
     
   </body>
 </html>
