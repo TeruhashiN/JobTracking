@@ -59,13 +59,8 @@ if (!isset($_SESSION['username'])) {
         <div class="sidebar-logo">
           <!-- Logo Header -->
           <div class="logo-header" data-background-color="dark">
-            <a href="dashboard.php" class="logo">
-              <img
-                src="../assets/img/kaiadmin/logo_light.svg"
-                alt="navbar brand"
-                class="navbar-brand"
-                height="20"
-              />
+            <a href="../function/dashboard.php" class="logo text-white fw-bold fs-4 text-decoration-none">
+              Job Tracker
             </a>
             <div class="nav-toggle">
               <button class="btn btn-toggle toggle-sidebar">
@@ -220,10 +215,11 @@ if (!isset($_SESSION['username'])) {
                       </li>
                       <li>
                         <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="#">My Profile</a>
+                        <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#accountSettingsModal">
+                          Account Settings
+                        </a>
+
                         <a class="dropdown-item" href="#">Change Currency</a>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="#">Account Settings</a>
                         <div class="dropdown-divider"></div>
                         <a class="dropdown-item" href="../account/logout.php">Logout</a>
                       </li>
@@ -238,8 +234,6 @@ if (!isset($_SESSION['username'])) {
                   </ul>
                 </li>
               </ul>
-
-
             </div>
           </nav>
           <!-- End Navbar -->
@@ -390,6 +384,47 @@ if (!isset($_SESSION['username'])) {
           </div>
         </div>
 
+        <!-- Account Settings Modal -->
+        <div class="modal fade" id="accountSettingsModal" tabindex="-1" aria-labelledby="accountSettingsModalLabel" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <form class="modal-content" method="POST" action="../account/update_settings.php">
+              <div class="modal-header">
+                <h5 class="modal-title" id="accountSettingsModalLabel">Account Settings</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <!-- Gender select -->
+                <div class="mb-3">
+                  <label for="gender" class="form-label">Gender</label>
+                  <select class="form-select" name="gender" required>
+                    <option value="Male" <?= ($_SESSION['gender'] ?? '') === 'Male' ? 'selected' : '' ?>>Male</option>
+                    <option value="Female" <?= ($_SESSION['gender'] ?? '') === 'Female' ? 'selected' : '' ?>>Female</option>
+                    <option value="" <?= empty($_SESSION['gender']) ? 'selected' : '' ?>>Prefer not to say</option>
+                  </select>
+                </div>
+
+                <!-- Current password -->
+                <div class="mb-3">
+                  <label for="current_password" class="form-label">Current Password (only if changing password)</label>
+                  <input type="password" class="form-control" name="current_password">
+                </div>
+
+                <!-- New password -->
+                <div class="mb-3">
+                  <label for="new_password" class="form-label">New Password</label>
+                  <input type="password" class="form-control" name="new_password">
+                </div>
+
+              </div>
+              <div class="modal-footer">
+                <button type="submit" class="btn btn-primary">Save changes</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+
         <!-- Success Modal -->
         <div class="modal fade" id="successModal" tabindex="-1">
           <div class="modal-dialog modal-dialog-centered">
@@ -420,33 +455,23 @@ if (!isset($_SESSION['username'])) {
           </div>
         </div>
 
-        <footer class="footer">
-          <div class="container-fluid d-flex justify-content-between">
-            <nav class="pull-left">
-              <ul class="nav">
-                <li class="nav-item">
-                  <a class="nav-link" href="http://www.themekita.com">
-                    ThemeKita
-                  </a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link" href="#"> Help </a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link" href="#"> Licenses </a>
-                </li>
-              </ul>
-            </nav>
-            <div class="copyright">
-              2024, made with <i class="fa fa-heart heart text-danger"></i> by
-              <a href="http://www.themekita.com">ThemeKita</a>
-            </div>
-            <div>
-              Distributed by
-              <a target="_blank" href="https://themewagon.com/">ThemeWagon</a>.
+        <!-- Footer -->
+        <footer class="footer bg-light py-4">
+          <div class="container d-flex justify-content-center">
+            <div class="social-icons d-flex gap-4">
+              <a href="https://www.linkedin.com/in/heraldo-brylle-justin-5527802ba/" target="_blank" class="text-primary">
+                <i class="fab fa-linkedin fa-2x"></i>
+              </a>
+              <a href="https://github.com/TeruhashiN" target="_blank" class="text-dark">
+                <i class="fab fa-github fa-2x"></i>
+              </a>
+              <a href="https://www.facebook.com/BrylleJustin.Chi" target="_blank" class="text-primary">
+                <i class="fab fa-facebook fa-2x"></i>
+              </a>
             </div>
           </div>
         </footer>
+        
       </div>
     </div>
 
