@@ -7,6 +7,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $password = password_hash($_POST['password'], PASSWORD_DEFAULT); // Secure hash
     $gender = mysqli_real_escape_string($conn, $_POST['gender']);
     $role = 'user'; // default role
+    $currency = '₱'; // default currency
 
     // Check if username already exists
     $check = "SELECT * FROM account WHERE username = '$username'";
@@ -17,8 +18,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit;
 
     } else {
-        $sql = "INSERT INTO account (username, password, gender, role) 
-                VALUES ('$username', '$password', '$gender', '$role')";
+        $sql = "INSERT INTO account (username, password, gender, role, currency) 
+                VALUES ('$username', '$password', '$gender', '$role', '$currency')";
 
         if (mysqli_query($conn, $sql)) {
             header("Location: ../function/dashboard.php?register=success");
