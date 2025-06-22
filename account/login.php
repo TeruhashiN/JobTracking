@@ -18,7 +18,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['userID'] = $row['userID'];
             $_SESSION['username'] = $row['username'];
             $_SESSION['role'] = $row['role'];
-
+            $_SESSION['gender'] = $row['gender'];
+            
             header("Location: ../function/dashboard.php?login=success");
             exit;
         } else {

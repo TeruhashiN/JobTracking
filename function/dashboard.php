@@ -140,6 +140,7 @@ if (!isset($_SESSION['username'])) {
             </div>
             <!-- End Logo Header -->
           </div>
+          
           <!-- Navbar Header -->
           <nav
             class="navbar navbar-header navbar-header-transparent navbar-expand-lg border-bottom"
@@ -162,46 +163,36 @@ if (!isset($_SESSION['username'])) {
                 </div>
               </nav>
 
+              <?php
+              // Determine profile image based on gender
+              $profileImage = '../img/default.jpg'; // Default
+
+              if (isset($_SESSION['gender'])) {
+                  if ($_SESSION['gender'] === 'Male') {
+                      $profileImage = '../img/male_profile.png';
+                  } elseif ($_SESSION['gender'] === 'Female') {
+                      $profileImage = '../img/female_profile.png';
+                  }
+              }
+              ?>
               <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
-                <li
-                  class="nav-item topbar-icon dropdown hidden-caret d-flex d-lg-none"
-                >
-                  <a
-                    class="nav-link dropdown-toggle"
-                    data-bs-toggle="dropdown"
-                    href="#"
-                    role="button"
-                    aria-expanded="false"
-                    aria-haspopup="true"
-                  >
+                <li class="nav-item topbar-icon dropdown hidden-caret d-flex d-lg-none">
+                  <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false" aria-haspopup="true">
                     <i class="fa fa-search"></i>
                   </a>
                   <ul class="dropdown-menu dropdown-search animated fadeIn">
                     <form class="navbar-left navbar-form nav-search">
                       <div class="input-group">
-                        <input
-                          type="text"
-                          placeholder="Search ..."
-                          class="form-control"
-                        />
+                        <input type="text" placeholder="Search ..." class="form-control" />
                       </div>
                     </form>
                   </ul>
                 </li>
 
                 <li class="nav-item topbar-user dropdown hidden-caret">
-                  <a
-                    class="dropdown-toggle profile-pic"
-                    data-bs-toggle="dropdown"
-                    href="#"
-                    aria-expanded="false"
-                  >
+                  <a class="dropdown-toggle profile-pic" data-bs-toggle="dropdown" href="#" aria-expanded="false">
                     <div class="avatar-sm">
-                      <img
-                        src="../assets/img/profile.jpg"
-                        alt="..."
-                        class="avatar-img rounded-circle"
-                      />
+                      <img src="<?= $profileImage ?>" alt="profile" class="avatar-img rounded-circle" />
                     </div>
                     <span class="profile-username">
                       <?php if (isset($_SESSION['username'])): ?>
@@ -210,16 +201,16 @@ if (!isset($_SESSION['username'])) {
                       <?php else: ?>
                         <span class="fw-bold">Guest</span>
                       <?php endif; ?>
-
                     </span>
                   </a>
+
                   <ul class="dropdown-menu dropdown-user animated fadeIn">
                     <div class="dropdown-user-scroll scrollbar-outer">
                       <li>
                         <?php if (isset($_SESSION['username'])): ?>
                           <div class="user-box">
                             <div class="avatar-lg">
-                              <img src="../assets/img/profile.jpg" alt="image profile" class="avatar-img rounded" />
+                              <img src="<?= $profileImage ?>" alt="profile" class="avatar-img rounded" />
                             </div>
                             <div class="u-text">
                               <h4><?= htmlspecialchars($_SESSION['username']) ?></h4>
@@ -245,6 +236,9 @@ if (!isset($_SESSION['username'])) {
                         <?php endif; ?>
                     </div>
                   </ul>
+                </li>
+              </ul>
+
 
             </div>
           </nav>
