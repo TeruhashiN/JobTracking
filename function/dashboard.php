@@ -218,8 +218,11 @@ if (!isset($_SESSION['username'])) {
                         <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#accountSettingsModal">
                           Account Settings
                         </a>
+                        <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changeCurrencyModal">
+                          Change Currency<?= isset($_SESSION['currency']) ? ' -  ' . htmlspecialchars($_SESSION['currency']) : '' ?>
+                        </a>
 
-                        <a class="dropdown-item" href="#">Change Currency</a>
+
                         <div class="dropdown-divider"></div>
                         <a class="dropdown-item" href="../account/logout.php">Logout</a>
                       </li>
@@ -423,6 +426,56 @@ if (!isset($_SESSION['username'])) {
             </form>
           </div>
         </div>
+
+        <!-- Change Currency Modal -->
+        <div class="modal fade" id="changeCurrencyModal" tabindex="-1" aria-labelledby="changeCurrencyLabel" aria-hidden="true">
+          <div class="modal-dialog">
+            <form method="POST" action="../account/update_currency.php">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="changeCurrencyLabel">Change Currency</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                  <div class="mb-3">
+                    <label for="currencySelect" class="form-label">Select Currency</label>
+                      <select class="form-select" id="currencySelect" name="currency" required>
+                        <option value="" disabled selected>Select one...</option>
+                        <option value="$">$ - US Dollar</option>
+                        <option value="₱">₱ - Philippine Peso</option>
+                        <option value="€">€ - Euro</option>
+                        <option value="¥">¥ - Japanese Yen</option>
+                        <option value="£">£ - British Pound</option>
+                        <option value="A$">A$ - Australian Dollar</option>
+                        <option value="C$">C$ - Canadian Dollar</option>
+                        <option value="CHF">CHF - Swiss Franc</option>
+                        <option value="CN¥">CN¥ - Chinese Yuan</option>
+                        <option value="₹">₹ - Indian Rupee</option>
+                        <option value="₩">₩ - South Korean Won</option>
+                        <option value="S$">S$ - Singapore Dollar</option>
+                        <option value="NZ$">NZ$ - New Zealand Dollar</option>
+                        <option value="R">R - South African Rand</option>
+                        <option value="kr">kr - Swedish/Norwegian/Danish Krona</option>
+                        <option value="₽">₽ - Russian Ruble</option>
+                        <option value="₺">₺ - Turkish Lira</option>
+                        <option value="R$">R$ - Brazilian Real</option>
+                        <option value="MX$">MX$ - Mexican Peso</option>
+                        <option value="RM">RM - Malaysian Ringgit</option>
+                        <option value="Rp">Rp - Indonesian Rupiah</option>
+                        <option value="฿">฿ - Thai Baht</option>
+                        <option value="د.إ">د.إ - UAE Dirham</option>
+                      </select>
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="submit" class="btn btn-primary">Save Changes</button>
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+
 
 
         <!-- Success Modal -->
