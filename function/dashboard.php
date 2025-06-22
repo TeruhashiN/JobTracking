@@ -1,3 +1,14 @@
+<?php
+session_start();
+
+// Optional: Redirect to login if not logged in
+if (!isset($_SESSION['username'])) {
+    // header("Location: ../account/login.php"); // Uncomment if you want forced login
+    // exit;
+}
+?>
+
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -193,48 +204,48 @@
                       />
                     </div>
                     <span class="profile-username">
-                      <?php if (isset($_SESSION['user'])): ?>
+                      <?php if (isset($_SESSION['username'])): ?>
                         <span class="op-7">Hi,</span>
-                        <span class="fw-bold"><?= htmlspecialchars($_SESSION['user']['name']) ?></span>
+                        <span class="fw-bold"><?= htmlspecialchars($_SESSION['username']) ?></span>
                       <?php else: ?>
                         <span class="fw-bold">Guest</span>
                       <?php endif; ?>
+
                     </span>
                   </a>
                   <ul class="dropdown-menu dropdown-user animated fadeIn">
                     <div class="dropdown-user-scroll scrollbar-outer">
-                      <?php if (isset($_SESSION['user'])): ?>
-                        <li>
+                      <li>
+                        <?php if (isset($_SESSION['username'])): ?>
                           <div class="user-box">
                             <div class="avatar-lg">
                               <img src="../assets/img/profile.jpg" alt="image profile" class="avatar-img rounded" />
                             </div>
                             <div class="u-text">
-                              <h4><?= htmlspecialchars($_SESSION['user']['name']) ?></h4>
-                              <p class="text-muted"><?= htmlspecialchars($_SESSION['user']['email']) ?></p>
+                              <h4><?= htmlspecialchars($_SESSION['username']) ?></h4>
+                              <p class="text-muted"><?= htmlspecialchars($_SESSION['role']) ?></p>
                             </div>
                           </div>
-                        </li>
-                        <li>
-                          <div class="dropdown-divider"></div>
-                          <a class="dropdown-item" href="#">My Profile</a>
-                          <a class="dropdown-item" href="#">Change Currency</a>
-                          <div class="dropdown-divider"></div>
-                          <a class="dropdown-item" href="#">Account Setting</a>
-                          <div class="dropdown-divider"></div>
-                          <a class="dropdown-item" href="logout.php">Logout</a>
-                        </li>
-                      <?php else: ?>
-                        <li>
-                          <div class="dropdown-divider"></div>
-                          <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#loginModal">Login</a>
-                          <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#registerModal">Register</a>
-                        </li>
-                      <?php endif; ?>
+                      </li>
+                      <li>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="#">My Profile</a>
+                        <a class="dropdown-item" href="#">Change Currency</a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="#">Account Settings</a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="../account/logout.php">Logout</a>
+                      </li>
+                        <?php else: ?>
+                          <li>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#loginModal">Login</a>
+                            <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#registerModal">Register</a>
+                          </li>
+                        <?php endif; ?>
                     </div>
                   </ul>
-                </li>
-              </ul>
+
             </div>
           </nav>
           <!-- End Navbar -->
@@ -341,14 +352,14 @@
         <div class="modal fade" id="loginModal" tabindex="-1">
           <div class="modal-dialog">
             <div class="modal-content">
-              <form action="login.php" method="post">
+              <form action="../account/login.php" method="post">
                 <div class="modal-header">
                   <h5 class="modal-title">Login</h5>
                   <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                   <input type="text" name="username" placeholder="Username" class="form-control mb-2" required>
-                  <input type="password" name="password" placeholder="Password" class="form-control" required>
+                  <input type="password" name="password" placeholder="Password" class="form-control mb-2" required>
                 </div>
                 <div class="modal-footer">
                   <button type="submit" class="btn btn-primary">Login</button>
@@ -357,6 +368,7 @@
             </div>
           </div>
         </div>
+
 
         <!-- Register Modal -->
         <div class="modal fade" id="registerModal" tabindex="-1">
@@ -482,7 +494,7 @@
     <script src="../assets/js/setting-demo.js"></script>
     <script src="../assets/js/demo.js"></script>
 
-    
+    <!-- Registration Modal Handler -->
     <script>
       const params = new URLSearchParams(window.location.search);
       const registerStatus = params.get("register");
@@ -495,6 +507,42 @@
         myModal.show();
       }
     </script>
+
+    <!-- Login Success Modal -->
+    <div class="modal fade" id="loginSuccessModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header bg-success text-white">
+            <h5 class="modal-title">Welcome</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">Login successful. Welcome back!</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Login Error Modal -->
+    <div class="modal fade" id="loginErrorModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header bg-danger text-white">
+            <h5 class="modal-title">Login Failed</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">Invalid username or password.</div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const loginStatus = new URLSearchParams(window.location.search).get('login');
+      if (loginStatus === 'success') {
+        new bootstrap.Modal(document.getElementById('loginSuccessModal')).show();
+      } else if (loginStatus === 'invalid') {
+        new bootstrap.Modal(document.getElementById('loginErrorModal')).show();
+      }
+    </script>
+
     
   </body>
 </html>
