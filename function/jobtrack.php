@@ -8,7 +8,6 @@ if (!isset($_SESSION['username'])) {
 }
 ?>
 
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -51,6 +50,42 @@ if (!isset($_SESSION['username'])) {
 
     <!-- CSS Just for demo purpose, don't include it in your project -->
     <link rel="stylesheet" href="../assets/css/demo.css" />
+
+    <!-- Custom CSS for better styling -->
+    <style>
+      .status-badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+      }
+      .status-applied { background-color: #17a2b8; }
+      .status-interview { background-color: #fd7e14; }
+      .status-accepted { background-color: #28a745; }
+      .status-rejected { background-color: #dc3545; }
+      .status-onprogress { background-color: #6f42c1; }
+      
+      .main-panel {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+      
+      .container {
+        flex: 1;
+      }
+      
+      .footer {
+        margin-top: auto;
+      }
+      
+      .table td {
+        vertical-align: middle;
+      }
+      
+      .form-select-sm {
+        font-size: 0.875rem;
+        padding: 0.375rem 0.75rem;
+      }
+    </style>
   </head>
   <body>
     <div class="wrapper">
@@ -244,86 +279,166 @@ if (!isset($_SESSION['username'])) {
         <div class="container">
           <div class="page-inner">
             <div class="page-header">
-              <h3 class="fw-bold mb-3">Application Progress Tracker</h3>
+              <h3 class="fw-bold mb-3">Job Application Tracker</h3>
+              <ul class="breadcrumbs mb-3">
+                <li class="nav-home">
+                  <a href="../function/dashboard.php">
+                    <i class="icon-home"></i>
+                  </a>
+                </li>
+                <li class="separator">
+                  <i class="icon-arrow-right"></i>
+                </li>
+                <li class="nav-item">
+                  <a href="#">Job Tracking</a>
+                </li>
+              </ul>
             </div>                    
               <div class="col-md-12">
                 <div class="card">
                   <div class="card-header">
                     <div class="d-flex align-items-center">
-                      <h4 class="card-title">Add Job Progress </h4>
+                      <h4 class="card-title">Job Applications Progress</h4>
                       <button
                         class="btn btn-primary btn-round ms-auto"
                         data-bs-toggle="modal"
-                        data-bs-target="#addRowModal"
+                        data-bs-target="#addJobModal"
                       >
                         <i class="fa fa-plus"></i>
-                        Add Row
+                        Add Job Application
                       </button>
                     </div>
                   </div>
                   <div class="card-body">
-                    <!-- Modal -->
+                    <!-- Add Job Application Modal -->
                     <div
                       class="modal fade"
-                      id="addRowModal"
+                      id="addJobModal"
                       tabindex="-1"
                       role="dialog"
                       aria-hidden="true"
                     >
-                      <div class="modal-dialog" role="document">
+                      <div class="modal-dialog modal-lg" role="document">
                         <div class="modal-content">
                           <div class="modal-header border-0">
                             <h5 class="modal-title">
-                              <span class="fw-mediumbold"> New</span>
-                              <span class="fw-light"> Row </span>
+                              <span class="fw-mediumbold">Add New</span>
+                              <span class="fw-light">Job Application</span>
                             </h5>
                             <button
                               type="button"
-                              class="close"
-                              data-dismiss="modal"
+                              class="btn-close"
+                              data-bs-dismiss="modal"
                               aria-label="Close"
-                            >
-                              <span aria-hidden="true">&times;</span>
-                            </button>
+                            ></button>
                           </div>
                           <div class="modal-body">
                             <p class="small">
-                              Create a new row using this form, make sure you
-                              fill them all
+                              Track your job application progress by filling out all the required information below.
                             </p>
-                            <form>
+                            <form id="addJobForm">
                               <div class="row">
-                                <div class="col-sm-12">
+                                <div class="col-md-6">
                                   <div class="form-group form-group-default">
-                                    <label>Name</label>
+                                    <label>Company Name <span class="text-danger">*</span></label>
                                     <input
-                                      id="addName"
+                                      id="addCompany"
                                       type="text"
                                       class="form-control"
-                                      placeholder="fill name"
-                                    />
-                                  </div>
-                                </div>
-                                <div class="col-md-6 pe-0">
-                                  <div class="form-group form-group-default">
-                                    <label>Position</label>
-                                    <input
-                                      id="addPosition"
-                                      type="text"
-                                      class="form-control"
-                                      placeholder="fill position"
+                                      placeholder="Enter company name"
+                                      required
                                     />
                                   </div>
                                 </div>
                                 <div class="col-md-6">
                                   <div class="form-group form-group-default">
-                                    <label>Office</label>
+                                    <label>Position <span class="text-danger">*</span></label>
                                     <input
-                                      id="addOffice"
+                                      id="addPosition"
                                       type="text"
                                       class="form-control"
-                                      placeholder="fill office"
+                                      placeholder="Enter job position"
+                                      required
                                     />
+                                  </div>
+                                </div>
+                                <div class="col-md-6">
+                                  <div class="form-group form-group-default">
+                                    <label>Applied Date <span class="text-danger">*</span></label>
+                                    <input
+                                      id="addAppliedDate"
+                                      type="date"
+                                      class="form-control"
+                                      required
+                                    />
+                                  </div>
+                                </div>
+                                <div class="col-md-6">
+                                  <div class="form-group form-group-default">
+                                    <label>Application Status <span class="text-danger">*</span></label>
+                                    <select id="addStatus" class="form-control" required>
+                                      <option value="">Select Status</option>
+                                      <option value="Applied">Applied</option>
+                                      <option value="Interview">Interview</option>
+                                      <option value="On Progress">On Progress</option>
+                                      <option value="Accepted">Accepted</option>
+                                      <option value="Rejected">Rejected</option>
+                                    </select>
+                                  </div>
+                                </div>
+                                <div class="col-md-6">
+                                  <div class="form-group form-group-default">
+                                    <label>Interview Date</label>
+                                    <input
+                                      id="addInterviewDate"
+                                      type="datetime-local"
+                                      class="form-control"
+                                    />
+                                  </div>
+                                </div>
+                                <div class="col-md-6">
+                                  <div class="form-group form-group-default">
+                                    <label>Follow-up Date</label>
+                                    <input
+                                      id="addFollowupDate"
+                                      type="date"
+                                      class="form-control"
+                                    />
+                                  </div>
+                                </div>
+                                <div class="col-md-6">
+                                  <div class="form-group form-group-default">
+                                    <label>Salary Range</label>
+                                    <input
+                                      id="addSalary"
+                                      type="text"
+                                      class="form-control"
+                                      placeholder="e.g., ₱50,000 - ₱60,000"
+                                    />
+                                  </div>
+                                </div>
+                                <div class="col-md-6">
+                                  <div class="form-group form-group-default">
+                                    <label>Job Type</label>
+                                    <select id="addJobType" class="form-control">
+                                      <option value="">Select Job Type</option>
+                                      <option value="Full-time">Full-time</option>
+                                      <option value="Part-time">Part-time</option>
+                                      <option value="Contract">Contract</option>
+                                      <option value="Freelance">Freelance</option>
+                                      <option value="Internship">Internship</option>
+                                    </select>
+                                  </div>
+                                </div>
+                                <div class="col-12">
+                                  <div class="form-group form-group-default">
+                                    <label>Notes</label>
+                                    <textarea
+                                      id="addNotes"
+                                      class="form-control"
+                                      rows="3"
+                                      placeholder="Additional notes or comments about this application"
+                                    ></textarea>
                                   </div>
                                 </div>
                               </div>
@@ -332,60 +447,181 @@ if (!isset($_SESSION['username'])) {
                           <div class="modal-footer border-0">
                             <button
                               type="button"
-                              id="addRowButton"
+                              id="addJobButton"
                               class="btn btn-primary"
                             >
-                              Add
+                              <i class="fa fa-plus"></i>
+                              Add Application
                             </button>
                             <button
                               type="button"
                               class="btn btn-danger"
-                              data-dismiss="modal"
+                              data-bs-dismiss="modal"
                             >
-                              Close
+                              Cancel
                             </button>
                           </div>
                         </div>
                       </div>
                     </div>
 
+                    <!-- Job Applications Table -->
                     <div class="table-responsive">
                       <table
-                        id="add-row"
+                        id="job-applications-table"
                         class="display table table-striped table-hover"
                       >
                         <thead>
                           <tr>
-                            <th>Name</th>
+                            <th>Company</th>
                             <th>Position</th>
-                            <th>Office</th>
-                            <th style="width: 10%">Action</th>
+                            <th>Applied Date</th>
+                            <th>Status</th>
+                            <th>Interview Date</th>
+                            <th>Follow-up</th>
+                            <th>Salary Range</th>
+                            <th>Job Type</th>
+                            <th style="width: 12%">Actions</th>
                           </tr>
                         </thead>
                         <tbody>
+                          <!-- Sample data - replace with dynamic data from database -->
                           <tr>
-                            <td>Tiger Nixon</td>
-                            <td>System Architect</td>
-                            <td>Edinburgh</td>
+                            <td>Google</td>
+                            <td>Software Engineer</td>
+                            <td>2024-06-15</td>
+                            <td>
+                              <select class="form-select form-select-sm status-select" data-row="0">
+                                <option value="Applied">Applied</option>
+                                <option value="Interview" selected>Interview</option>
+                                <option value="On Progress">On Progress</option>
+                                <option value="Accepted">Accepted</option>
+                                <option value="Rejected">Rejected</option>
+                              </select>
+                            </td>
+                            <td>2024-06-22 10:00 AM</td>
+                            <td>2024-06-25</td>
+                            <td>₱80,000 - ₱100,000</td>
+                            <td><span class="badge bg-primary">Full-time</span></td>
                             <td>
                               <div class="form-button-action">
                                 <button
                                   type="button"
                                   data-bs-toggle="tooltip"
-                                  title=""
-                                  class="btn btn-link btn-primary btn-lg"
-                                  data-original-title="Edit Task"
+                                  title="Edit Application"
+                                  class="btn btn-link btn-primary btn-lg edit-btn"
+                                  data-bs-toggle="modal"
+                                  data-bs-target="#editJobModal"
                                 >
                                   <i class="fa fa-edit"></i>
                                 </button>
                                 <button
                                   type="button"
                                   data-bs-toggle="tooltip"
-                                  title=""
-                                  class="btn btn-link btn-danger"
-                                  data-original-title="Remove"
+                                  title="Delete Application"
+                                  class="btn btn-link btn-danger delete-btn"
                                 >
                                   <i class="fa fa-times"></i>
+                                </button>
+                                <button
+                                  type="button"
+                                  data-bs-toggle="tooltip"
+                                  title="View Details"
+                                  class="btn btn-link btn-info view-btn"
+                                >
+                                  <i class="fa fa-eye"></i>
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>Microsoft</td>
+                            <td>Frontend Developer</td>
+                            <td>2024-06-10</td>
+                            <td>
+                              <select class="form-select form-select-sm status-select" data-row="1">
+                                <option value="Applied" selected>Applied</option>
+                                <option value="Interview">Interview</option>
+                                <option value="On Progress">On Progress</option>
+                                <option value="Accepted">Accepted</option>
+                                <option value="Rejected">Rejected</option>
+                              </select>
+                            </td>
+                            <td>-</td>
+                            <td>2024-06-20</td>
+                            <td>₱70,000 - ₱90,000</td>
+                            <td><span class="badge bg-primary">Full-time</span></td>
+                            <td>
+                              <div class="form-button-action">
+                                <button
+                                  type="button"
+                                  data-bs-toggle="tooltip"
+                                  title="Edit Application"
+                                  class="btn btn-link btn-primary btn-lg edit-btn"
+                                >
+                                  <i class="fa fa-edit"></i>
+                                </button>
+                                <button
+                                  type="button"
+                                  data-bs-toggle="tooltip"
+                                  title="Delete Application"
+                                  class="btn btn-link btn-danger delete-btn"
+                                >
+                                  <i class="fa fa-times"></i>
+                                </button>
+                                <button
+                                  type="button"
+                                  data-bs-toggle="tooltip"
+                                  title="View Details"
+                                  class="btn btn-link btn-info view-btn"
+                                >
+                                  <i class="fa fa-eye"></i>
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>Apple</td>
+                            <td>iOS Developer</td>
+                            <td>2024-06-05</td>
+                            <td>
+                              <select class="form-select form-select-sm status-select" data-row="2">
+                                <option value="Applied">Applied</option>
+                                <option value="Interview">Interview</option>
+                                <option value="On Progress">On Progress</option>
+                                <option value="Accepted" selected>Accepted</option>
+                                <option value="Rejected">Rejected</option>
+                              </select>
+                            </td>
+                            <td>2024-06-12 2:00 PM</td>
+                            <td>-</td>
+                            <td>₱95,000 - ₱120,000</td>
+                            <td><span class="badge bg-primary">Full-time</span></td>
+                            <td>
+                              <div class="form-button-action">
+                                <button
+                                  type="button"
+                                  data-bs-toggle="tooltip"
+                                  title="Edit Application"
+                                  class="btn btn-link btn-primary btn-lg edit-btn"
+                                >
+                                  <i class="fa fa-edit"></i>
+                                </button>
+                                <button
+                                  type="button"
+                                  data-bs-toggle="tooltip"
+                                  title="Delete Application"
+                                  class="btn btn-link btn-danger delete-btn"
+                                >
+                                  <i class="fa fa-times"></i>
+                                </button>
+                                <button
+                                  type="button"
+                                  data-bs-toggle="tooltip"
+                                  title="View Details"
+                                  class="btn btn-link btn-info view-btn"
+                                >
+                                  <i class="fa fa-eye"></i>
                                 </button>
                               </div>
                             </td>
@@ -398,8 +634,7 @@ if (!isset($_SESSION['username'])) {
               </div>
             </div>
           </div>
-        </div>                       
-        
+        </div>
 
         <!-- Login Modal -->
         <div class="modal fade" id="loginModal" tabindex="-1">
@@ -421,7 +656,6 @@ if (!isset($_SESSION['username'])) {
             </div>
           </div>
         </div>
-
 
         <!-- Register Modal -->
         <div class="modal fade" id="registerModal" tabindex="-1">
@@ -519,8 +753,6 @@ if (!isset($_SESSION['username'])) {
           </div>
         </div>
 
-
-
         <!-- Success Modal -->
         <div class="modal fade" id="successModal" tabindex="-1">
           <div class="modal-dialog modal-dialog-centered">
@@ -551,18 +783,48 @@ if (!isset($_SESSION['username'])) {
           </div>
         </div>
 
+        <!-- Login Success Modal -->
+        <div class="modal fade" id="loginSuccessModal" tabindex="-1">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">Welcome</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body">Login successful. Welcome back!</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Login Error Modal -->
+        <div class="modal fade" id="loginErrorModal" tabindex="-1">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Login Failed</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body">Invalid username or password.</div>
+            </div>
+          </div>
+        </div>
+
         <!-- Footer -->
         <footer class="footer bg-light py-4">
-          <div class="container d-flex justify-content-center">
-            <div class="social-icons d-flex gap-4">
+          <div class="container-fluid">
+            <div class="copyright">
+              2024, made with <i class="fa fa-heart heart text-danger"></i> by
+              <a href="#">Job Tracker Team</a>
+            </div>
+            <div class="social-icons d-flex gap-3">
               <a href="https://www.linkedin.com/in/heraldo-brylle-justin-5527802ba/" target="_blank" class="text-primary">
-                <i class="fab fa-linkedin fa-2x"></i>
+                <i class="fab fa-linkedin fa-lg"></i>
               </a>
               <a href="https://github.com/TeruhashiN" target="_blank" class="text-dark">
-                <i class="fab fa-github fa-2x"></i>
+                <i class="fab fa-github fa-lg"></i>
               </a>
               <a href="https://www.facebook.com/BrylleJustin.Chi" target="_blank" class="text-primary">
-                <i class="fab fa-facebook fa-2x"></i>
+                <i class="fab fa-facebook fa-lg"></i>
               </a>
             </div>
           </div>
@@ -602,8 +864,6 @@ if (!isset($_SESSION['username'])) {
     <!-- Sweet Alert -->
     <script src="../assets/js/plugin/sweetalert/sweetalert.min.js"></script>
 
-    <script src="../assets/js/plugin/datatables/datatables.min.js"></script>
-
     <!-- Kaiadmin JS -->
     <script src="../assets/js/kaiadmin.min.js"></script>
 
@@ -611,8 +871,174 @@ if (!isset($_SESSION['username'])) {
     <script src="../assets/js/setting-demo.js"></script>
     <script src="../assets/js/demo.js"></script>
 
-    <!-- Registration Modal Handler -->
+    <!-- Custom Job Tracker JavaScript -->
     <script>
+      $(document).ready(function() {
+        // Initialize DataTable
+        $("#job-applications-table").DataTable({
+          pageLength: 10,
+          responsive: true,
+          columnDefs: [
+            { orderable: false, targets: [8] } // Disable sorting on Actions column
+          ],
+          order: [[2, 'desc']] // Sort by Applied Date (newest first)
+        });
+
+        // Add Job Application
+        $("#addJobButton").click(function() {
+          const company = $("#addCompany").val();
+          const position = $("#addPosition").val();
+          const appliedDate = $("#addAppliedDate").val();
+          const status = $("#addStatus").val();
+          const interviewDate = $("#addInterviewDate").val();
+          const followupDate = $("#addFollowupDate").val();
+          const salary = $("#addSalary").val();
+          const jobType = $("#addJobType").val();
+          const notes = $("#addNotes").val();
+
+          if (company && position && appliedDate && status) {
+            const table = $("#job-applications-table").DataTable();
+            const rowCount = table.rows().count();
+            
+            const newRow = table.row.add([
+              company,
+              position,
+              appliedDate,
+              `<select class="form-select form-select-sm status-select" data-row="${rowCount}">
+                <option value="Applied" ${status === 'Applied' ? 'selected' : ''}>Applied</option>
+                <option value="Interview" ${status === 'Interview' ? 'selected' : ''}>Interview</option>
+                <option value="On Progress" ${status === 'On Progress' ? 'selected' : ''}>On Progress</option>
+                <option value="Accepted" ${status === 'Accepted' ? 'selected' : ''}>Accepted</option>
+                <option value="Rejected" ${status === 'Rejected' ? 'selected' : ''}>Rejected</option>
+              </select>`,
+              interviewDate ? formatDateTime(interviewDate) : '-',
+              followupDate || '-',
+              salary || '-',
+              jobType ? `<span class="badge bg-primary">${jobType}</span>` : '-',
+              `<div class="form-button-action">
+                <button type="button" data-bs-toggle="tooltip" title="Edit Application" class="btn btn-link btn-primary btn-lg edit-btn">
+                  <i class="fa fa-edit"></i>
+                </button>
+                <button type="button" data-bs-toggle="tooltip" title="Delete Application" class="btn btn-link btn-danger delete-btn">
+                  <i class="fa fa-times"></i>
+                </button>
+                <button type="button" data-bs-toggle="tooltip" title="View Details" class="btn btn-link btn-info view-btn">
+                  <i class="fa fa-eye"></i>
+                </button>
+              </div>`
+            ]).draw(false);
+
+            // Clear form
+            $("#addJobForm")[0].reset();
+            $("#addJobModal").modal('hide');
+
+            // Show success notification
+            $.notify({
+              icon: 'icon-bell',
+              title: 'Success!',
+              message: 'Job application added successfully.',
+            },{
+              type: 'success',
+              placement: {
+                from: "bottom",
+                align: "right"
+              },
+              time: 1000,
+            });
+          } else {
+            $.notify({
+              icon: 'icon-close',
+              title: 'Error!',
+              message: 'Please fill in all required fields.',
+            },{
+              type: 'danger',
+              placement: {
+                from: "bottom",
+                align: "right"
+              },
+              time: 1000,
+            });
+          }
+        });
+
+        // Delete row functionality
+        $('#job-applications-table tbody').on('click', '.delete-btn', function() {
+          const row = $(this).closest('tr');
+          const table = $("#job-applications-table").DataTable();
+          
+          swal({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            type: 'warning',
+            buttons: {
+              confirm: {
+                text: 'Yes, delete it!',
+                className: 'btn btn-success'
+              },
+              cancel: {
+                visible: true,
+                className: 'btn btn-danger'
+              }
+            }
+          }).then((willDelete) => {
+            if (willDelete) {
+              table.row(row).remove().draw();
+              swal("Deleted!", "Job application has been deleted.", "success");
+            }
+          });
+        });
+
+        // Status change functionality
+        $('#job-applications-table tbody').on('change', '.status-select', function() {
+          const newStatus = $(this).val();
+          const company = $(this).closest('tr').find('td:first').text();
+          
+          $.notify({
+            icon: 'icon-check',
+            title: 'Status Updated!',
+            message: `${company} application status changed to ${newStatus}.`,
+          },{
+            type: 'info',
+            placement: {
+              from: "bottom",
+              align: "right"
+            },
+            time: 1000,
+          });
+        });
+
+        // View details functionality
+        $('#job-applications-table tbody').on('click', '.view-btn', function() {
+          const row = $(this).closest('tr');
+          const table = $("#job-applications-table").DataTable();
+          const data = table.row(row).data();
+          
+          swal({
+            title: 'Application Details',
+            text: `Company: ${data[0]}\nPosition: ${data[1]}\nApplied: ${data[2]}\nInterview: ${data[4]}\nFollow-up: ${data[5]}\nSalary: ${data[6]}`,
+            type: 'info',
+            buttons: {
+              confirm: {
+                className: 'btn btn-info'
+              }
+            }
+          });
+        });
+
+        // Initialize tooltips
+        $('[data-bs-toggle="tooltip"]').tooltip();
+
+        // Set today's date as default for applied date
+        $("#addAppliedDate").val(new Date().toISOString().split('T')[0]);
+      });
+
+      // Helper function to format datetime
+      function formatDateTime(datetime) {
+        const date = new Date(datetime);
+        return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+      }
+
+      // Registration Modal Handler
       const params = new URLSearchParams(window.location.search);
       const registerStatus = params.get("register");
 
@@ -623,35 +1049,8 @@ if (!isset($_SESSION['username'])) {
         var myModal = new bootstrap.Modal(document.getElementById('errorModal'));
         myModal.show();
       }
-    </script>
 
-    <!-- Login Success Modal -->
-    <div class="modal fade" id="loginSuccessModal" tabindex="-1">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header bg-success text-white">
-            <h5 class="modal-title">Welcome</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body">Login successful. Welcome back!</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Login Error Modal -->
-    <div class="modal fade" id="loginErrorModal" tabindex="-1">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header bg-danger text-white">
-            <h5 class="modal-title">Login Failed</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body">Invalid username or password.</div>
-        </div>
-      </div>
-    </div>
-
-    <script>
+      // Login Status Handler
       const loginStatus = new URLSearchParams(window.location.search).get('login');
       if (loginStatus === 'success') {
         new bootstrap.Modal(document.getElementById('loginSuccessModal')).show();
