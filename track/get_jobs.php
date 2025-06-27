@@ -5,52 +5,101 @@ include '../database/db_connect.php';
 header('Content-Type: application/json');
 
 try {
-    // Check if user is logged in (optional, based on your requirements)
-    $user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
-    
-    // Build query - if you want to filter by user, add WHERE clause
-    $query = "SELECT * FROM track ORDER BY applied_date DESC";
-    
-    // If you want to filter by logged-in user only, uncomment the line below
-    // and make sure you have a user_id column in your track table
-    // $query = "SELECT * FROM track WHERE user_id = ? ORDER BY applied_date DESC";
-    
-    $result = mysqli_query($conn, $query);
-    
-    if (!$result) {
-        throw new Exception("Query failed: " . mysqli_error($conn));
+    // Check if user is logged in
+    if (!isset($_SESSION['username'])) {
+        throw new Exception("User not logged in. Please log in to view job applications.");
     }
     
+    // Get user ID from session or database
+    $username = $_SESSION['username'];
+    $user_query = "SELECT userID FROM account WHERE username = ?";
+    $user_stmt = mysqli_prepare($conn, $user_query);
+    
+    if (!$user_stmt) {
+        throw new Exception("Database prepare failed: " . mysqli_error($conn));
+    }
+    
+    mysqli_stmt_bind_param($user_stmt, "s", $username);
+    mysqli_stmt_execute($user_stmt);
+    $user_result = mysqli_stmt_get_result($user_stmt);
+    
+    if (mysqli_num_rows($user_result) === 0) {
+        throw new Exception("User not found. Please log in again.");
+    }
+    
+    $user_row = mysqli_fetch_assoc($user_result);
+    $userID = $user_row['userID'];
+    mysqli_stmt_close($user_stmt);
+    
+    // Fetch job applications for the current user only
+    $query = "SELECT track_id, company, position, applied_date, status, interview_date, follow_date, salary_range, job_type, notes, created_at 
+              FROM track 
+              WHERE userID = ? 
+              ORDER BY created_at DESC, applied_date DESC";
+    
+    $stmt = mysqli_prepare($conn, $query);
+    
+    if (!$stmt) {
+        throw new Exception("Database prepare failed: " . mysqli_error($conn));
+    }
+    
+    mysqli_stmt_bind_param($stmt, "i", $userID);
+    
+    if (!mysqli_stmt_execute($stmt)) {
+        throw new Exception("Failed to execute query: " . mysqli_stmt_error($stmt));
+    }
+    
+    $result = mysqli_stmt_get_result($stmt);
     $jobs = array();
     
     while ($row = mysqli_fetch_assoc($result)) {
-        $jobs[] = array(
-            'track_id' => $row['track_id'],
-            'company' => $row['company'],
-            'position' => $row['position'],
-            'applied_date' => $row['applied_date'],
-            'status' => $row['status'],
-            'interview_date' => $row['interview_date'],
-            'follow_date' => $row['follow_date'],
-            'salary_range' => $row['salary_range'],
-            'job_type' => $row['job_type'],
-            'notes' => $row['notes']
-        );
+        // Format dates properly
+        $row['applied_date'] = date('Y-m-d', strtotime($row['applied_date']));
+        
+        if (!empty($row['interview_date'])) {
+            $row['interview_date'] = date('Y-m-d H:i:s', strtotime($row['interview_date']));
+        }
+        
+        if (!empty($row['follow_date'])) {
+            $row['follow_date'] = date('Y-m-d', strtotime($row['follow_date']));
+        }
+        
+        $jobs[] = $row;
     }
+    
+    mysqli_stmt_close($stmt);
     
     echo json_encode(array(
         'success' => true,
         'data' => $jobs,
-        'message' => 'Jobs loaded successfully'
+        'count' => count($jobs),
+        'user' => $username
     ));
     
 } catch (Exception $e) {
+    // Log the error
+    error_log("Get jobs error: " . $e->getMessage());
+    
     echo json_encode(array(
         'success' => false,
         'message' => $e->getMessage(),
+        'error_code' => 'GET_JOBS_ERROR',
+        'data' => array()
+    ));
+} catch (mysqli_sql_exception $e) {
+    // Handle specific database errors
+    error_log("Database error in get_jobs.php: " . $e->getMessage());
+    
+    echo json_encode(array(
+        'success' => false,
+        'message' => 'Database error occurred. Please try again.',
+        'error_code' => 'DATABASE_ERROR',
         'data' => array()
     ));
 }
 
-mysqli_close($conn);
+// Close database connection
+if (isset($conn)) {
+    mysqli_close($conn);
+}
 ?>

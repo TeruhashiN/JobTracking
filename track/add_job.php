@@ -10,6 +10,32 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 try {
+    // Check if user is logged in
+    if (!isset($_SESSION['username'])) {
+        throw new Exception("User not logged in. Please log in to add job applications.");
+    }
+    
+    // Get user ID from session or database
+    $username = $_SESSION['username'];
+    $user_query = "SELECT userID FROM account WHERE username = ?";
+    $user_stmt = mysqli_prepare($conn, $user_query);
+    
+    if (!$user_stmt) {
+        throw new Exception("Database prepare failed: " . mysqli_error($conn));
+    }
+    
+    mysqli_stmt_bind_param($user_stmt, "s", $username);
+    mysqli_stmt_execute($user_stmt);
+    $user_result = mysqli_stmt_get_result($user_stmt);
+    
+    if (mysqli_num_rows($user_result) === 0) {
+        throw new Exception("User not found. Please log in again.");
+    }
+    
+    $user_row = mysqli_fetch_assoc($user_result);
+    $userID = $user_row['userID'];
+    mysqli_stmt_close($user_stmt);
+    
     // Get and sanitize POST data
     $company = trim(mysqli_real_escape_string($conn, $_POST['company']));
     $position = trim(mysqli_real_escape_string($conn, $_POST['position']));
@@ -61,14 +87,9 @@ try {
         throw new Exception("Invalid status value");
     }
     
-    // Check if user is logged in (optional - uncomment if you want to associate jobs with users)
-    // if (!isset($_SESSION['user_id'])) {
-    //     throw new Exception("User not logged in");
-    // }
-    
-    // Prepare SQL query - use NULL for optional fields
-    $query = "INSERT INTO track (company, position, applied_date, status, interview_date, follow_date, salary_range, job_type, notes, created_at) 
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
+    // Prepare SQL query - including userID
+    $query = "INSERT INTO track (userID, company, position, applied_date, status, interview_date, follow_date, salary_range, job_type, notes, created_at) 
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
     
     $stmt = mysqli_prepare($conn, $query);
     
@@ -76,8 +97,9 @@ try {
         throw new Exception("Database prepare failed: " . mysqli_error($conn));
     }
     
-    // Bind parameters - using 's' for all as we're handling NULLs properly
-    mysqli_stmt_bind_param($stmt, "sssssssss", 
+    // Bind parameters - userID is integer, rest are strings
+    mysqli_stmt_bind_param($stmt, "isssssssss", 
+        $userID,
         $company, 
         $position, 
         $applied_date, 
@@ -92,14 +114,15 @@ try {
     if (mysqli_stmt_execute($stmt)) {
         $new_id = mysqli_insert_id($conn);
         
-        // Log the successful addition (optional)
-        error_log("Job application added successfully: ID $new_id, Company: $company, Position: $position");
+        // Log the successful addition
+        error_log("Job application added successfully: ID $new_id, User: $username, Company: $company, Position: $position");
         
         echo json_encode(array(
             'success' => true,
             'message' => "Job application for $position at $company added successfully!",
             'track_id' => $new_id,
             'data' => array(
+                'userID' => $userID,
                 'company' => $company,
                 'position' => $position,
                 'applied_date' => $applied_date,
