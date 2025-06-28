@@ -376,12 +376,12 @@ if (!isset($_SESSION['username'])) {
                                 </div>
                                 <div class="col-md-6">
                                   <div class="form-group form-group-default">
-                                    <label>Salary Range</label>
+                                    <label>Salary</label>
                                     <input
                                       id="addSalary"
                                       type="text"
                                       class="form-control"
-                                      placeholder="e.g., ₱50,000 - ₱60,000"
+                                      placeholder="e.g., 50,000"
                                     />
                                   </div>
                                 </div>
@@ -447,7 +447,7 @@ if (!isset($_SESSION['username'])) {
                             <th>Status</th>
                             <th>Interview Date</th>
                             <th>Follow-up</th>
-                            <th>Salary Range</th>
+                            <th>Salary</th>
                             <th>Job Type</th>
                             <th style="width: 12%">Actions</th>
                           </tr>

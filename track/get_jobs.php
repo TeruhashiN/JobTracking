@@ -12,7 +12,7 @@ try {
     
     // Get user ID from session or database
     $username = $_SESSION['username'];
-    $user_query = "SELECT userID FROM account WHERE username = ?";
+    $user_query = "SELECT userID, currency FROM account WHERE username = ?";
     $user_stmt = mysqli_prepare($conn, $user_query);
     
     if (!$user_stmt) {
@@ -29,6 +29,7 @@ try {
     
     $user_row = mysqli_fetch_assoc($user_result);
     $userID = $user_row['userID'];
+    $currency = $user_row['currency']; // <-- Currency
     mysqli_stmt_close($user_stmt);
     
     // Fetch job applications for the current user only
@@ -64,6 +65,11 @@ try {
             $row['follow_date'] = date('Y-m-d', strtotime($row['follow_date']));
         }
         
+        // Add currency prefix to salary_range if present
+        if (!empty($row['salary_range'])) {
+            $row['salary_range'] = $currency . $row['salary_range'];
+        }
+
         $jobs[] = $row;
     }
     

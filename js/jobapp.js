@@ -71,14 +71,15 @@ function loadJobApplications() {
                 
                 response.data.forEach(function(job) {
                     const interviewDate = job.interview_date ? formatDateTime(job.interview_date) : '-';
-                    const followDate = job.follow_date || '-';
+                    const followDate = job.follow_date ? formatDateOnly(job.follow_date) : '-';
+                    const appliedDate = job.applied_date ? formatDateOnly(job.applied_date) : '-';
                     const salaryRange = job.salary_range || '-';
                     const jobType = job.job_type ? `<span class="badge bg-primary">${job.job_type}</span>` : '-';
                     
                     jobTable.row.add([
                         job.company,
                         job.position,
-                        job.applied_date,
+                        appliedDate,
                         `<select class="form-select form-select-sm status-select" data-id="${job.track_id}">
                             <option value="Applied" ${job.status === 'Applied' ? 'selected' : ''}>Applied</option>
                             <option value="Interview" ${job.status === 'Interview' ? 'selected' : ''}>Interview</option>
@@ -405,5 +406,21 @@ $('[data-bs-toggle="tooltip"]').tooltip();
 function formatDateTime(datetime) {
     if (!datetime) return '-';
     const date = new Date(datetime);
-    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    const options = {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+    };
+    return date.toLocaleString(undefined, options); 
+}
+
+// this is for the Date only
+function formatDateOnly(dateStr) {
+    if (!dateStr) return '-';
+    const date = new Date(dateStr);
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    return date.toLocaleDateString(undefined, options);
 }
