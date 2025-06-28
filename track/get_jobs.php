@@ -67,7 +67,7 @@ try {
         
         // Add currency prefix to salary_range if present
         if (!empty($row['salary_range'])) {
-            $row['salary_range'] = $currency . $row['salary_range'];
+            $row['salary_range'] = $currency . number_format($row['salary_range']);
         }
 
         $jobs[] = $row;
