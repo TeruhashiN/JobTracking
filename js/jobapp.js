@@ -30,12 +30,9 @@ $("#addStatus").change(function() {
     // Show relevant fields based on status
     if (selectedStatus === 'Interview') {
         interviewGroup.show();
-        followupGroup.show(); // Also show follow-up for interview
         $("#addInterviewDate").attr('required', true);
     } else if (selectedStatus === 'On Progress') {
         followupGroup.show(); // Show follow-up for On Progress
-    } else if (selectedStatus === 'Applied') {
-        followupGroup.show(); // Show follow-up for Applied status
     }
     
     // Clear values when hiding fields
