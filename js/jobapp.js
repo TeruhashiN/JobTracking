@@ -1,19 +1,300 @@
 $(document).ready(function() {
 let jobTable;
 
-// Initialize DataTable
+// ========== STATUS STYLING FUNCTIONS ==========
+// Function to get status badge HTML with proper styling
+function getStatusBadge(status) {
+    const statusMap = {
+        'Applied': {
+            class: 'status-applied',
+            text: 'Applied'
+        },
+        'Interview': {
+            class: 'status-interview',
+            text: 'Interview'
+        },
+        'On Progress': {
+            class: 'status-onprogress',
+            text: 'On Progress'
+        },
+        'Accepted': {
+            class: 'status-accepted',
+            text: 'Accepted'
+        },
+        'Rejected': {
+            class: 'status-rejected',
+            text: 'Rejected'
+        }
+    };
+
+    const statusInfo = statusMap[status] || { class: 'status-applied', text: status };
+    return `<span class="status-badge ${statusInfo.class}">${statusInfo.text}</span>`;
+}
+
+// Function to get row class based on status
+function getRowClass(status) {
+    const rowClassMap = {
+        'Applied': 'status-applied-row',
+        'Interview': 'status-interview-row',
+        'On Progress': 'status-onprogress-row',
+        'Accepted': 'status-accepted-row',
+        'Rejected': 'status-rejected-row'
+    };
+    
+    return rowClassMap[status] || 'status-applied-row';
+}
+
+// Function to apply status styling to table rows
+function applyStatusStyling() {
+    $('#job-applications-table tbody tr').each(function() {
+        const statusCell = $(this).find('td:nth-child(4)'); // Status is in 4th column
+        const statusSelect = statusCell.find('.status-select');
+        
+        if (statusSelect.length > 0) {
+            const statusText = statusSelect.val();
+            
+            // Remove existing status classes
+            $(this).removeClass('status-applied-row status-interview-row status-onprogress-row status-accepted-row status-rejected-row');
+            
+            // Add appropriate row class
+            $(this).addClass(getRowClass(statusText));
+        }
+    });
+}
+
+// Function to update a single row's status
+function updateRowStatus(row, status) {
+    const $row = $(row);
+    
+    // Remove existing status classes
+    $row.removeClass('status-applied-row status-interview-row status-onprogress-row status-accepted-row status-rejected-row');
+    
+    // Add new status class
+    $row.addClass(getRowClass(status));
+}
+
+// ========== ENHANCED DATATABLE INITIALIZATION WITH PROPER STATUS HANDLING ==========
 jobTable = $("#job-applications-table").DataTable({
     pageLength: 10,
     responsive: true,
     columnDefs: [
-        { orderable: false, targets: [8] } // Disable sorting on Actions column
+        { orderable: false, targets: [8] }, // Disable sorting on Actions column
+        {
+            targets: [3], // Status column
+            render: function(data, type, row, meta) {
+                if (type === 'display') {
+                    // Get the track_id from the row's stored data
+                    const rowData = jobTable.row(meta.row).data();
+                    const trackId = rowData.DT_RowData ? rowData.DT_RowData.track_id : '';
+                    
+                    return `<select class="form-select form-select-sm status-select" data-id="${trackId}" data-row-index="${meta.row}">
+                        <option value="Applied" ${data === 'Applied' ? 'selected' : ''}>Applied</option>
+                        <option value="Interview" ${data === 'Interview' ? 'selected' : ''}>Interview</option>
+                        <option value="On Progress" ${data === 'On Progress' ? 'selected' : ''}>On Progress</option>
+                        <option value="Accepted" ${data === 'Accepted' ? 'selected' : ''}>Accepted</option>
+                        <option value="Rejected" ${data === 'Rejected' ? 'selected' : ''}>Rejected</option>
+                    </select>`;
+                }
+                return data;
+            }
+        }
     ],
-    order: [[2, 'desc']] // Sort by Applied Date (newest first)
+    order: [[2, 'desc']], // Sort by Applied Date (newest first)
+    drawCallback: function() {
+        // Apply status styling after each draw
+        setTimeout(function() {
+            applyStatusStyling();
+            // Re-attach event handlers for status selects
+            attachStatusChangeHandlers();
+        }, 50);
+        
+        // Reinitialize tooltips
+        $('[data-bs-toggle="tooltip"]').tooltip();
+    }
 });
+
+
+// ========== ENHANCED STATUS CHANGE FUNCTIONALITY ==========
+function attachStatusChangeHandlers() {
+    // Remove existing handlers to prevent duplicates
+    $('.status-select').off('change.statusUpdate');
+    
+    // Attach new handlers
+    $('.status-select').on('change.statusUpdate', function() {
+        const newStatus = $(this).val();
+        const jobId = $(this).data('id');
+        const rowIndex = $(this).data('row-index');
+        const row = $(this).closest('tr');
+        
+        console.log('Status change triggered:', {
+            newStatus: newStatus,
+            jobId: jobId,
+            rowIndex: rowIndex
+        });
+        
+        // Validate that we have a job ID
+        if (!jobId) {
+            console.error('No job ID found for status update');
+            
+            // Try to get it from the row data
+            const rowData = jobTable.row(row).data();
+            const alternateId = rowData.DT_RowData ? rowData.DT_RowData.track_id : null;
+            
+            if (alternateId) {
+                console.log('Found alternate ID:', alternateId);
+                $(this).attr('data-id', alternateId);
+                updateJobStatusEnhanced(alternateId, newStatus, row);
+            } else {
+                $.notify({
+                    icon: 'icon-close',
+                    title: 'Error!',
+                    message: 'Job Application ID is missing. Please refresh the page and try again.',
+                },{
+                    type: 'danger',
+                    placement: {
+                        from: "bottom",
+                        align: "right"
+                    },
+                    time: 3000,
+                });
+                
+                // Reload the table to fix the issue
+                loadJobApplications();
+                return;
+            }
+        } else {
+            updateJobStatusEnhanced(jobId, newStatus, row);
+        }
+    });
+}
+
+// Enhanced status update function with better error handling
+function updateJobStatusEnhanced(jobId, newStatus, row) {
+    // Get company name for notification
+    const company = $(row).find('td:first').text();
+    
+    // Update row styling immediately for better UX
+    updateRowStatus(row, newStatus);
+    
+    // Show loading state
+    const statusSelect = $(row).find('.status-select');
+    const originalHtml = statusSelect.prop('outerHTML');
+    statusSelect.prop('disabled', true);
+    
+    // Validate inputs
+    if (!jobId || !newStatus) {
+        console.error('Missing required parameters:', { jobId, newStatus });
+        $.notify({
+            icon: 'icon-close',
+            title: 'Error!',
+            message: 'Invalid data. Please refresh the page and try again.',
+        },{
+            type: 'danger',
+            placement: {
+                from: "bottom",
+                align: "right"
+            },
+            time: 3000,
+        });
+        return;
+    }
+    
+    $.ajax({
+        url: '../track/update_status.php',
+        type: 'POST',
+        data: { 
+            track_id: jobId,
+            status: newStatus 
+        },
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                $.notify({
+                    icon: 'icon-check',
+                    title: 'Status Updated!',
+                    message: `${company} application status changed to ${newStatus}.`,
+                },{
+                    type: 'info',
+                    placement: {
+                        from: "bottom",
+                        align: "right"
+                    },
+                    time: 2000,
+                });
+                
+                // Re-enable the select
+                statusSelect.prop('disabled', false);
+            } else {
+                console.error('Server error:', response.message);
+                $.notify({
+                    icon: 'icon-close',
+                    title: 'Error!',
+                    message: response.message,
+                },{
+                    type: 'danger',
+                    placement: {
+                        from: "bottom",
+                        align: "right"
+                    },
+                    time: 3000,
+                });
+                // Reload to revert changes
+                loadJobApplications();
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('AJAX error:', {
+                status: status,
+                error: error,
+                responseText: xhr.responseText
+            });
+            
+            $.notify({
+                icon: 'icon-close',
+                title: 'Error!',
+                message: 'Failed to update status. Please check your connection and try again.',
+            },{
+                type: 'danger',
+                placement: {
+                    from: "bottom",
+                    align: "right"
+                },
+                time: 3000,
+            });
+            // Reload to revert changes
+            loadJobApplications();
+        }
+    });
+}
+
+// ========== DEBUGGING FUNCTION ==========
+// Add this function to help debug the issue
+function debugTableData() {
+    console.log('=== TABLE DEBUG INFO ===');
+    
+    jobTable.rows().every(function(rowIdx, tableLoop, rowLoop) {
+        const data = this.data();
+        const node = this.node();
+        const statusSelect = $(node).find('.status-select');
+        
+        console.log(`Row ${rowIdx}:`, {
+            data: data,
+            DT_RowData: data.DT_RowData,
+            statusSelectId: statusSelect.data('id'),
+            statusValue: statusSelect.val()
+        });
+    });
+    
+    console.log('=== END DEBUG INFO ===');
+}
+
+// Make debug function globally accessible
+window.debugTableData = debugTableData;
 
 // Load job applications from database
 loadJobApplications();
 
+// ========== MODAL HANDLERS ==========
 // Handle status change in Add Job Modal to show/hide conditional fields
 $("#addStatus").change(function() {
     const selectedStatus = $(this).val();
@@ -60,6 +341,7 @@ $("#addJobModal").on('show.bs.modal', function() {
     $("#addInterviewDate").removeAttr('required');
 });
 
+// ========== ENHANCED DATA LOADING WITH PROPER ID HANDLING ==========
 function loadJobApplications() {
     $.ajax({
         url: '../track/get_jobs.php',
@@ -76,17 +358,12 @@ function loadJobApplications() {
                     const salaryRange = job.salary_range || '-';
                     const jobType = job.job_type ? `<span class="badge bg-primary">${job.job_type}</span>` : '-';
                     
-                    jobTable.row.add([
+                    // Create the row data array with track_id included
+                    const rowData = [
                         job.company,
                         job.position,
                         appliedDate,
-                        `<select class="form-select form-select-sm status-select" data-id="${job.track_id}">
-                            <option value="Applied" ${job.status === 'Applied' ? 'selected' : ''}>Applied</option>
-                            <option value="Interview" ${job.status === 'Interview' ? 'selected' : ''}>Interview</option>
-                            <option value="On Progress" ${job.status === 'On Progress' ? 'selected' : ''}>On Progress</option>
-                            <option value="Accepted" ${job.status === 'Accepted' ? 'selected' : ''}>Accepted</option>
-                            <option value="Rejected" ${job.status === 'Rejected' ? 'selected' : ''}>Rejected</option>
-                        </select>`,
+                        job.status, // This will be processed by columnDefs
                         interviewDate,
                         followDate,
                         salaryRange,
@@ -102,24 +379,56 @@ function loadJobApplications() {
                                 <i class="fa fa-eye"></i>
                             </button>
                         </div>`
-                    ]);
+                    ];
+                    
+                    // Add the row with track_id stored properly
+                    const newRow = jobTable.row.add(rowData);
+                    
+                    // Store additional data in the row's DT_RowData
+                    newRow.data().DT_RowData = {
+                        track_id: job.track_id,
+                        company: job.company,
+                        position: job.position,
+                        notes: job.notes || ''
+                    };
                 });
                 
                 jobTable.draw();
-                
-                // Reinitialize tooltips
-                $('[data-bs-toggle="tooltip"]').tooltip();
             } else {
                 console.error('Error loading job applications:', response.message);
+                $.notify({
+                    icon: 'icon-close',
+                    title: 'Error!',
+                    message: 'Failed to load job applications: ' + response.message,
+                },{
+                    type: 'danger',
+                    placement: {
+                        from: "bottom",
+                        align: "right"
+                    },
+                    time: 3000,
+                });
             }
         },
         error: function(xhr, status, error) {
             console.error('AJAX Error:', error);
+            $.notify({
+                icon: 'icon-close',
+                title: 'Error!',
+                message: 'Failed to load job applications. Please check your connection.',
+            },{
+                type: 'danger',
+                placement: {
+                    from: "bottom",
+                    align: "right"
+                },
+                time: 3000,
+            });
         }
     });
 }
 
-// Add Job Application with enhanced validation
+// ========== ADD JOB FUNCTIONALITY ==========
 $("#addJobButton").click(function() {
     const status = $("#addStatus").val();
     
@@ -236,57 +545,56 @@ $("#addJobButton").click(function() {
     });
 });
 
-
-// Edit button click handler - FIXED VERSION
+// ========== EDIT FUNCTIONALITY ==========
+// Enhanced edit button click handler that fetches data from server
 $(document).on('click', '.edit-btn', function () {
     const trackId = $(this).data('id');
     
-    // Get the row data using a more reliable method
-    const row = $(this).closest('tr');
-    const cells = row.find('td');
+    // Show loading state
+    const editBtn = $(this);
+    const originalHtml = editBtn.html();
+    editBtn.html('<i class="fa fa-spinner fa-spin"></i>').prop('disabled', true);
     
-    // Extract data from each cell
-    const company = cells.eq(0).text().trim();
-    const position = cells.eq(1).text().trim();
-    const appliedDateText = cells.eq(2).text().trim();
-    
-    // Get status from the select dropdown
-    const statusSelect = cells.eq(3).find('select.status-select');
-    const status = statusSelect.val();
-    
-    const interviewDateText = cells.eq(4).text().trim();
-    const followDateText = cells.eq(5).text().trim();
-    const salaryText = cells.eq(6).text().trim();
-    
-    // Get job type from the badge or text content
-    const jobTypeCell = cells.eq(7);
-    let jobType = '';
-    const jobTypeBadge = jobTypeCell.find('.badge');
-    if (jobTypeBadge.length > 0) {
-        jobType = jobTypeBadge.text().trim();
-    } else {
-        jobType = jobTypeCell.text().trim();
-    }
-    
-    // Get notes from the view button data attribute
-    const viewBtn = row.find('.view-btn');
-    const notes = viewBtn.data('notes') || '';
-
-    // Populate the edit modal
-    $('#edit-track-id').val(trackId);
-    $('#edit-company').val(company);
-    $('#edit-position').val(position);
-    $('#edit-applied-date').val(convertToDateFormat(appliedDateText));
-    $('#edit-status').val(status);
-    $('#edit-status').trigger('change');
-    $('#edit-interview-date').val(convertToDateTimeFormat(interviewDateText));
-    $('#edit-follow-date').val(convertToDateFormat(followDateText));
-    $('#edit-salary-range').val(salaryText === '-' ? '' : salaryText);
-    $('#edit-job-type').val(jobType === '-' ? '' : jobType);
-    $('#edit-notes').val(notes);
-
-    // Show the modal
-    $('#editJobModal').modal('show');
+    // Fetch job data from server
+    $.ajax({
+        url: '../track/get_job_details.php',
+        type: 'GET',
+        data: { track_id: trackId },
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                const job = response.data;
+                
+                // Populate the edit modal with server data
+                $('#edit-track-id').val(job.track_id);
+                $('#edit-company').val(job.company);
+                $('#edit-position').val(job.position);
+                $('#edit-applied-date').val(job.applied_date);
+                $('#edit-status').val(job.status);
+                $('#edit-interview-date').val(job.interview_date || '');
+                $('#edit-follow-date').val(job.follow_date || '');
+                $('#edit-salary-range').val(job.salary_range || '');
+                $('#edit-job-type').val(job.job_type || '');
+                $('#edit-notes').val(job.notes || '');
+                
+                // Trigger status change to show/hide fields
+                $('#edit-status').trigger('change');
+                
+                // Show the modal
+                $('#editJobModal').modal('show');
+            } else {
+                alert('Error loading job details: ' + response.message);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error fetching job details:', error);
+            alert('Failed to load job details. Please try again.');
+        },
+        complete: function() {
+            // Restore button state
+            editBtn.html(originalHtml).prop('disabled', false);
+        }
+    });
 });
 
 // Handle status change in Edit Job Modal to show/hide conditional fields
@@ -319,110 +627,69 @@ $("#edit-status").change(function() {
     }
 });
 
+// Edit form submission
+$('#editJobForm').on('submit', function (e) {
+    e.preventDefault();
 
-// Helper function to convert displayed date to input format (YYYY-MM-DD)
-function convertToDateFormat(dateStr) {
-    if (!dateStr || dateStr === '-' || dateStr.trim() === '') {
-        return '';
-    }
-    
-    try {
-        // Handle different date formats that might be displayed
-        // Check if it's already in YYYY-MM-DD format
-        if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-            return dateStr;
-        }
-        
-        // Parse the displayed date (assuming it's in a readable format like "January 15, 2024")
-        const date = new Date(dateStr);
-        if (!isNaN(date.getTime())) {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
-        }
-        
-        return '';
-    } catch (error) {
-        console.error('Error converting date:', error);
-        return '';
-    }
-}
+    const formData = $(this).serialize();
 
-// Helper function to convert displayed datetime to input format (YYYY-MM-DDTHH:MM)
-function convertToDateTimeFormat(dateTimeStr) {
-    if (!dateTimeStr || dateTimeStr === '-' || dateTimeStr.trim() === '') {
-        return '';
-    }
-    
-    try {
-        // Parse the displayed datetime
-        const date = new Date(dateTimeStr);
-        if (!isNaN(date.getTime())) {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            const hours = String(date.getHours()).padStart(2, '0');
-            const minutes = String(date.getMinutes()).padStart(2, '0');
-            return `${year}-${month}-${day}T${hours}:${minutes}`;
-        }
-        
-        return '';
-    } catch (error) {
-        console.error('Error converting datetime:', error);
-        return '';
-    }
-}
-
-// Alternative approach: Get data directly from server when edit button is clicked
-$(document).on('click', '.edit-btn', function () {
-    const trackId = $(this).data('id');
-    
-    // Show loading state
-    const editBtn = $(this);
-    const originalHtml = editBtn.html();
-    editBtn.html('<i class="fa fa-spinner fa-spin"></i>').prop('disabled', true);
-    
-    // Fetch job data from server
     $.ajax({
-        url: '../track/get_job_details.php', // You'll need to create this file
-        type: 'GET',
-        data: { track_id: trackId },
+        url: '../track/edit_job.php',
+        type: 'POST',
+        data: formData,
         dataType: 'json',
-        success: function(response) {
-            if (response.success) {
-                const job = response.data;
+        success: function (res) {
+            if (res.success) {
+                $('#editJobModal').modal('hide');
+                loadJobApplications(); // Refresh table
                 
-                // Populate the edit modal with server data
-                $('#edit-track-id').val(job.track_id);
-                $('#edit-company').val(job.company);
-                $('#edit-position').val(job.position);
-                $('#edit-applied-date').val(job.applied_date);
-                $('#edit-status').val(job.status);
-                $('#edit-interview-date').val(job.interview_date || '');
-                $('#edit-follow-date').val(job.follow_date || '');
-                $('#edit-salary-range').val(job.salary_range || '');
-                $('#edit-job-type').val(job.job_type || '');
-                $('#edit-notes').val(job.notes || '');
-                
-                // Show the modal
-                $('#editJobModal').modal('show');
+                // Show success notification
+                $.notify({
+                    icon: 'icon-check',
+                    title: 'Success!',
+                    message: res.message,
+                },{
+                    type: 'success',
+                    placement: {
+                        from: "bottom",
+                        align: "right"
+                    },
+                    time: 2000,
+                });
             } else {
-                alert('Error loading job details: ' + response.message);
+                $.notify({
+                    icon: 'icon-close',
+                    title: 'Error!',
+                    message: res.message,
+                },{
+                    type: 'danger',
+                    placement: {
+                        from: "bottom",
+                        align: "right"
+                    },
+                    time: 3000,
+                });
             }
         },
-        error: function(xhr, status, error) {
-            console.error('Error fetching job details:', error);
-            alert('Failed to load job details. Please try again.');
-        },
-        complete: function() {
-            // Restore button state
-            editBtn.html(originalHtml).prop('disabled', false);
-        }
-    });
+        error: function (xhr, status, error) {
+            console.error('AJAX error:', xhr.responseText);
+            $.notify({
+                icon: 'icon-close',
+                title: 'Error!',
+                message: 'Failed to update job application. Please try again.',
+            },{
+                type: 'danger',
+                placement: {
+                    from: "bottom",
+                align: "right"
+            },
+            time: 3000,
+        });
+    }
+});
 });
 
-// Delete row functionality
+// ========== DELETE FUNCTIONALITY ==========
 $('#job-applications-table tbody').on('click', '.delete-btn', function() {
     const jobId = $(this).data('id');
     const row = $(this).closest('tr');
@@ -464,15 +731,16 @@ $('#job-applications-table tbody').on('click', '.delete-btn', function() {
     });
 });
 
-// Status change functionality with enhanced logic
+// ========== STATUS CHANGE FUNCTIONALITY ==========
+// Enhanced status change functionality with styling updates
 $('#job-applications-table tbody').on('change', '.status-select', function() {
     const newStatus = $(this).val();
     const jobId = $(this).data('id');
     const company = $(this).closest('tr').find('td:first').text();
-    const oldStatus = $(this).data('old-status') || 'Unknown';
+    const row = $(this).closest('tr');
     
-    // Store old status for potential rollback
-    $(this).data('old-status', newStatus);
+    // Update row styling immediately for better UX
+    updateRowStatus(row, newStatus);
     
     // Special handling for Interview status
     if (newStatus === 'Interview') {
@@ -494,7 +762,6 @@ $('#job-applications-table tbody').on('change', '.status-select', function() {
         }).then((setDate) => {
             if (setDate) {
                 // You could implement an inline date picker here
-                // For now, we'll just update the status
                 updateJobStatus(jobId, newStatus, company);
             } else {
                 updateJobStatus(jobId, newStatus, company);
@@ -505,7 +772,7 @@ $('#job-applications-table tbody').on('change', '.status-select', function() {
     }
 });
 
-// Separate function to handle status updates
+// Enhanced status update function
 function updateJobStatus(jobId, newStatus, company) {
     $.ajax({
         url: '../track/update_status.php',
@@ -565,70 +832,7 @@ function updateJobStatus(jobId, newStatus, company) {
     });
 }
 
-// edit
-$('#editJobForm').on('submit', function (e) {
-    e.preventDefault();
-
-    const formData = $(this).serialize();
-
-    $.ajax({
-        url: '../track/edit_job.php',
-        type: 'POST',
-        data: formData,
-        dataType: 'json',
-        success: function (res) {
-            if (res.success) {
-                $('#editJobModal').modal('hide');
-                loadJobApplications(); // Refresh table
-                
-                // Show success notification instead of alert
-                $.notify({
-                    icon: 'icon-check',
-                    title: 'Success!',
-                    message: res.message,
-                },{
-                    type: 'success',
-                    placement: {
-                        from: "bottom",
-                        align: "right"
-                    },
-                    time: 2000,
-                });
-            } else {
-                $.notify({
-                    icon: 'icon-close',
-                    title: 'Error!',
-                    message: res.message,
-                },{
-                    type: 'danger',
-                    placement: {
-                        from: "bottom",
-                        align: "right"
-                    },
-                    time: 3000,
-                });
-            }
-        },
-        error: function (xhr, status, error) {
-            console.error('AJAX error:', xhr.responseText);
-            $.notify({
-                icon: 'icon-close',
-                title: 'Error!',
-                message: 'Failed to update job application. Please try again.',
-            },{
-                type: 'danger',
-                placement: {
-                    from: "bottom",
-                    align: "right"
-                },
-                time: 3000,
-            });
-        }
-    });
-});
-
-
-// View details functionality
+// ========== VIEW DETAILS FUNCTIONALITY ==========
 $('#job-applications-table tbody').on('click', '.view-btn', function() {
     const row = $(this).closest('tr');
     const data = jobTable.row(row).data();
@@ -646,11 +850,67 @@ $('#job-applications-table tbody').on('click', '.view-btn', function() {
     });
 });
 
+// ========== ADDITIONAL STATUS FUNCTIONS ==========
+// Function to get status statistics for dashboard
+function getStatusStatistics() {
+    const stats = {
+        applied: 0,
+        interview: 0,
+        onprogress: 0,
+        accepted: 0,
+        rejected: 0,
+        total: 0
+    };
+    
+    $('#job-applications-table tbody tr').each(function() {
+        const statusSelect = $(this).find('.status-select');
+        if (statusSelect.length > 0) {
+            const status = statusSelect.val();
+            stats.total++;
+            
+            switch(status.toLowerCase()) {
+                case 'applied':
+                    stats.applied++;
+                    break;
+                case 'interview':
+                    stats.interview++;
+                    break;
+                case 'on progress':
+                    stats.onprogress++;
+                    break;
+                case 'accepted':
+                    stats.accepted++;
+                    break;
+                case 'rejected':
+                    stats.rejected++;
+                    break;
+            }
+        }
+    });
+    
+    return stats;
+}
+
+// Function to filter table by status
+function filterByStatus(status) {
+    const table = $('#job-applications-table').DataTable();
+    
+    if (status === 'all') {
+        table.column(3).search('').draw();
+    } else {
+        table.column(3).search(status).draw();
+    }
+}
+
+// Make filter function globally accessible
+window.filterByStatus = filterByStatus;
+
 // Initialize tooltips
 $('[data-bs-toggle="tooltip"]').tooltip();
 
 });
 
+// ========== HELPER FUNCTIONS ==========
 // Helper function to format datetime
 function formatDateTime(datetime) {
     if (!datetime) return '-';
@@ -666,7 +926,7 @@ function formatDateTime(datetime) {
     return date.toLocaleString(undefined, options); 
 }
 
-// this is for the Date only
+// Helper function for date only formatting
 function formatDateOnly(dateStr) {
     if (!dateStr) return '-';
     const date = new Date(dateStr);
