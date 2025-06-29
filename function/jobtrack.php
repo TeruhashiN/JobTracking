@@ -433,69 +433,105 @@ if (!isset($_SESSION['username'])) {
                       </div>
                     </div>
                     
-                    <!-- Edit modal -->
-                    <div class="modal fade" id="editJobModal" tabindex="-1" aria-labelledby="editJobModalLabel" aria-hidden="true">
-                      <div class="modal-dialog modal-lg">
-                        <form id="editJobForm">
-                          <div class="modal-content">
-                            <div class="modal-header">
-                              <h5 class="modal-title" id="editJobModalLabel">Edit Job Application</h5>
-                              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                            </div>
-                            <div class="modal-body">
-                              <input type="hidden" name="track_id" id="edit-track-id">
-                              <div class="mb-3">
-                                <label for="edit-company" class="form-label">Company</label>
-                                <input type="text" class="form-control" name="company" id="edit-company" required>
-                              </div>
-                              <div class="mb-3">
-                                <label for="edit-position" class="form-label">Position</label>
-                                <input type="text" class="form-control" name="position" id="edit-position" required>
-                              </div>
-                              <div class="mb-3">
-                                <label for="edit-applied-date" class="form-label">Applied Date</label>
-                                <input type="date" class="form-control" name="applied_date" id="edit-applied-date" required>
-                              </div>
-                              <div class="mb-3">
-                                <label for="edit-status" class="form-label">Status</label>
-                                <select class="form-select" name="status" id="edit-status" required>
-                                  <option value="Applied">Applied</option>
-                                  <option value="Interview">Interview</option>
-                                  <option value="On Progress">On Progress</option>
-                                  <option value="Accepted">Accepted</option>
-                                  <option value="Rejected">Rejected</option>
-                                </select>
-                              </div>
-                              <div class="mb-3">
-                                <label for="edit-interview-date" class="form-label">Interview Date</label>
-                                <input type="datetime-local" class="form-control" name="interview_date" id="edit-interview-date">
-                              </div>
-                              <div class="mb-3">
-                                <label for="edit-follow-date" class="form-label">Follow-up Date</label>
-                                <input type="date" class="form-control" name="follow_date" id="edit-follow-date">
-                              </div>
-                              <div class="mb-3">
-                                <label for="edit-salary-range" class="form-label">Salary Range</label>
-                                <input type="text" class="form-control" name="salary_range" id="edit-salary-range">
-                              </div>
-                              <div class="mb-3">
-                                <label for="edit-job-type" class="form-label">Job Type</label>
-                                <input type="text" class="form-control" name="job_type" id="edit-job-type">
-                              </div>
-                              <div class="mb-3">
-                                <label for="edit-notes" class="form-label">Notes</label>
-                                <textarea class="form-control" name="notes" id="edit-notes" rows="3"></textarea>
-                              </div>
-                            </div>
-                            <div class="modal-footer">
-                              <button type="submit" class="btn btn-primary">Update</button>
-                              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                            </div>
+                    <!-- Edit Job Application Modal -->
+                    <div class="modal fade" id="editJobModal" tabindex="-1" aria-hidden="true">
+                      <div class="modal-dialog modal-lg" role="document">
+                        <div class="modal-content">
+                          <div class="modal-header border-0">
+                            <h5 class="modal-title">
+                              <span class="fw-mediumbold">Edit</span>
+                              <span class="fw-light">Job Application</span>
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                           </div>
-                        </form>
+                          <div class="modal-body">
+                            <p class="small">
+                              Update your job application details below.
+                            </p>
+                            <form id="editJobForm">
+                              <input type="hidden" id="edit-track-id" name="track_id" />
+                              <div class="row">
+                                <div class="col-md-6">
+                                  <div class="form-group form-group-default">
+                                    <label>Company Name <span class="text-danger">*</span></label>
+                                    <input type="text" id="edit-company" name="company" class="form-control" required placeholder="Enter company name" />
+                                  </div>
+                                </div>
+                                <div class="col-md-6">
+                                  <div class="form-group form-group-default">
+                                    <label>Position <span class="text-danger">*</span></label>
+                                    <input type="text" id="edit-position" name="position" class="form-control" required placeholder="Enter job position" />
+                                  </div>
+                                </div>
+                                <div class="col-md-6">
+                                  <div class="form-group form-group-default">
+                                    <label>Applied Date <span class="text-danger">*</span></label>
+                                    <input type="date" id="edit-applied-date" name="applied_date" class="form-control" required />
+                                  </div>
+                                </div>
+                                <div class="col-md-6">
+                                  <div class="form-group form-group-default">
+                                    <label>Application Status <span class="text-danger">*</span></label>
+                                    <select id="edit-status" name="status" class="form-control" required>
+                                      <option value="">Select Status</option>
+                                      <option value="Applied">Applied</option>
+                                      <option value="Interview">Interview</option>
+                                      <option value="On Progress">On Progress</option>
+                                      <option value="Accepted">Accepted</option>
+                                      <option value="Rejected">Rejected</option>
+                                    </select>
+                                  </div>
+                                </div>
+                                <div class="col-md-6">
+                                  <div class="form-group form-group-default">
+                                    <label>Interview Date</label>
+                                    <input type="datetime-local" id="edit-interview-date" name="interview_date" class="form-control" />
+                                  </div>
+                                </div>
+                                <div class="col-md-6">
+                                  <div class="form-group form-group-default">
+                                    <label>Follow-up Date</label>
+                                    <input type="date" id="edit-follow-date" name="follow_date" class="form-control" />
+                                  </div>
+                                </div>
+                                <div class="col-md-6">
+                                  <div class="form-group form-group-default">
+                                    <label>Salary</label>
+                                    <input type="text" id="edit-salary-range" name="salary_range" class="form-control" placeholder="e.g., 50,000" />
+                                  </div>
+                                </div>
+                                <div class="col-md-6">
+                                  <div class="form-group form-group-default">
+                                    <label>Job Type</label>
+                                    <select id="edit-job-type" name="job_type" class="form-control">
+                                      <option value="">Select Job Type</option>
+                                      <option value="Full-time">Full-time</option>
+                                      <option value="Part-time">Part-time</option>
+                                      <option value="Contract">Contract</option>
+                                      <option value="Freelance">Freelance</option>
+                                      <option value="Internship">Internship</option>
+                                    </select>
+                                  </div>
+                                </div>
+                                <div class="col-12">
+                                  <div class="form-group form-group-default">
+                                    <label>Notes</label>
+                                    <textarea id="edit-notes" name="notes" class="form-control" rows="3" placeholder="Additional notes or comments about this application"></textarea>
+                                  </div>
+                                </div>
+                              </div>
+                            </form>
+                          </div>
+                          <div class="modal-footer border-0">
+                            <button type="submit" form="editJobForm" class="btn btn-primary">
+                              <i class="fa fa-sync-alt"></i>
+                              Update Application
+                            </button>
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                          </div>
+                        </div>
                       </div>
                     </div>
-
 
                     <!-- Job Applications Table -->
                     <div class="table-responsive">
