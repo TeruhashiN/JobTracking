@@ -60,6 +60,161 @@ $("#addJobModal").on('show.bs.modal', function() {
     $("#addInterviewDate").removeAttr('required');
 });
 
+// edit
+// Edit button click handler - FIXED VERSION
+$(document).on('click', '.edit-btn', function () {
+    const trackId = $(this).data('id');
+    
+    // Get the row data using a more reliable method
+    const row = $(this).closest('tr');
+    const cells = row.find('td');
+    
+    // Extract data from each cell
+    const company = cells.eq(0).text().trim();
+    const position = cells.eq(1).text().trim();
+    const appliedDateText = cells.eq(2).text().trim();
+    
+    // Get status from the select dropdown
+    const statusSelect = cells.eq(3).find('select.status-select');
+    const status = statusSelect.val();
+    
+    const interviewDateText = cells.eq(4).text().trim();
+    const followDateText = cells.eq(5).text().trim();
+    const salaryText = cells.eq(6).text().trim();
+    
+    // Get job type from the badge or text content
+    const jobTypeCell = cells.eq(7);
+    let jobType = '';
+    const jobTypeBadge = jobTypeCell.find('.badge');
+    if (jobTypeBadge.length > 0) {
+        jobType = jobTypeBadge.text().trim();
+    } else {
+        jobType = jobTypeCell.text().trim();
+    }
+    
+    // Get notes from the view button data attribute
+    const viewBtn = row.find('.view-btn');
+    const notes = viewBtn.data('notes') || '';
+
+    // Populate the edit modal
+    $('#edit-track-id').val(trackId);
+    $('#edit-company').val(company);
+    $('#edit-position').val(position);
+    $('#edit-applied-date').val(convertToDateFormat(appliedDateText));
+    $('#edit-status').val(status);
+    $('#edit-interview-date').val(convertToDateTimeFormat(interviewDateText));
+    $('#edit-follow-date').val(convertToDateFormat(followDateText));
+    $('#edit-salary-range').val(salaryText === '-' ? '' : salaryText);
+    $('#edit-job-type').val(jobType === '-' ? '' : jobType);
+    $('#edit-notes').val(notes);
+
+    // Show the modal
+    $('#editJobModal').modal('show');
+});
+
+// Helper function to convert displayed date to input format (YYYY-MM-DD)
+function convertToDateFormat(dateStr) {
+    if (!dateStr || dateStr === '-' || dateStr.trim() === '') {
+        return '';
+    }
+    
+    try {
+        // Handle different date formats that might be displayed
+        // Check if it's already in YYYY-MM-DD format
+        if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+            return dateStr;
+        }
+        
+        // Parse the displayed date (assuming it's in a readable format like "January 15, 2024")
+        const date = new Date(dateStr);
+        if (!isNaN(date.getTime())) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+        
+        return '';
+    } catch (error) {
+        console.error('Error converting date:', error);
+        return '';
+    }
+}
+
+// Helper function to convert displayed datetime to input format (YYYY-MM-DDTHH:MM)
+function convertToDateTimeFormat(dateTimeStr) {
+    if (!dateTimeStr || dateTimeStr === '-' || dateTimeStr.trim() === '') {
+        return '';
+    }
+    
+    try {
+        // Parse the displayed datetime
+        const date = new Date(dateTimeStr);
+        if (!isNaN(date.getTime())) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${year}-${month}-${day}T${hours}:${minutes}`;
+        }
+        
+        return '';
+    } catch (error) {
+        console.error('Error converting datetime:', error);
+        return '';
+    }
+}
+
+// Alternative approach: Get data directly from server when edit button is clicked
+$(document).on('click', '.edit-btn', function () {
+    const trackId = $(this).data('id');
+    
+    // Show loading state
+    const editBtn = $(this);
+    const originalHtml = editBtn.html();
+    editBtn.html('<i class="fa fa-spinner fa-spin"></i>').prop('disabled', true);
+    
+    // Fetch job data from server
+    $.ajax({
+        url: '../track/get_job_details.php', // You'll need to create this file
+        type: 'GET',
+        data: { track_id: trackId },
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                const job = response.data;
+                
+                // Populate the edit modal with server data
+                $('#edit-track-id').val(job.track_id);
+                $('#edit-company').val(job.company);
+                $('#edit-position').val(job.position);
+                $('#edit-applied-date').val(job.applied_date);
+                $('#edit-status').val(job.status);
+                $('#edit-interview-date').val(job.interview_date || '');
+                $('#edit-follow-date').val(job.follow_date || '');
+                $('#edit-salary-range').val(job.salary_range || '');
+                $('#edit-job-type').val(job.job_type || '');
+                $('#edit-notes').val(job.notes || '');
+                
+                // Show the modal
+                $('#editJobModal').modal('show');
+            } else {
+                alert('Error loading job details: ' + response.message);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error fetching job details:', error);
+            alert('Failed to load job details. Please try again.');
+        },
+        complete: function() {
+            // Restore button state
+            editBtn.html(originalHtml).prop('disabled', false);
+        }
+    });
+});
+
+
 function loadJobApplications() {
     $.ajax({
         url: '../track/get_jobs.php',
@@ -378,6 +533,69 @@ function updateJobStatus(jobId, newStatus, company) {
         }
     });
 }
+
+// edit
+$('#editJobForm').on('submit', function (e) {
+    e.preventDefault();
+
+    const formData = $(this).serialize();
+
+    $.ajax({
+        url: '../track/edit_job.php',
+        type: 'POST',
+        data: formData,
+        dataType: 'json',
+        success: function (res) {
+            if (res.success) {
+                $('#editJobModal').modal('hide');
+                loadJobApplications(); // Refresh table
+                
+                // Show success notification instead of alert
+                $.notify({
+                    icon: 'icon-check',
+                    title: 'Success!',
+                    message: res.message,
+                },{
+                    type: 'success',
+                    placement: {
+                        from: "bottom",
+                        align: "right"
+                    },
+                    time: 2000,
+                });
+            } else {
+                $.notify({
+                    icon: 'icon-close',
+                    title: 'Error!',
+                    message: res.message,
+                },{
+                    type: 'danger',
+                    placement: {
+                        from: "bottom",
+                        align: "right"
+                    },
+                    time: 3000,
+                });
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error('AJAX error:', xhr.responseText);
+            $.notify({
+                icon: 'icon-close',
+                title: 'Error!',
+                message: 'Failed to update job application. Please try again.',
+            },{
+                type: 'danger',
+                placement: {
+                    from: "bottom",
+                    align: "right"
+                },
+                time: 3000,
+            });
+        }
+    });
+});
+
 
 // View details functionality
 $('#job-applications-table tbody').on('click', '.view-btn', function() {

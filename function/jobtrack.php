@@ -432,6 +432,70 @@ if (!isset($_SESSION['username'])) {
                         </div>
                       </div>
                     </div>
+                    
+                    <!-- Edit modal -->
+                    <div class="modal fade" id="editJobModal" tabindex="-1" aria-labelledby="editJobModalLabel" aria-hidden="true">
+                      <div class="modal-dialog modal-lg">
+                        <form id="editJobForm">
+                          <div class="modal-content">
+                            <div class="modal-header">
+                              <h5 class="modal-title" id="editJobModalLabel">Edit Job Application</h5>
+                              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                              <input type="hidden" name="track_id" id="edit-track-id">
+                              <div class="mb-3">
+                                <label for="edit-company" class="form-label">Company</label>
+                                <input type="text" class="form-control" name="company" id="edit-company" required>
+                              </div>
+                              <div class="mb-3">
+                                <label for="edit-position" class="form-label">Position</label>
+                                <input type="text" class="form-control" name="position" id="edit-position" required>
+                              </div>
+                              <div class="mb-3">
+                                <label for="edit-applied-date" class="form-label">Applied Date</label>
+                                <input type="date" class="form-control" name="applied_date" id="edit-applied-date" required>
+                              </div>
+                              <div class="mb-3">
+                                <label for="edit-status" class="form-label">Status</label>
+                                <select class="form-select" name="status" id="edit-status" required>
+                                  <option value="Applied">Applied</option>
+                                  <option value="Interview">Interview</option>
+                                  <option value="On Progress">On Progress</option>
+                                  <option value="Accepted">Accepted</option>
+                                  <option value="Rejected">Rejected</option>
+                                </select>
+                              </div>
+                              <div class="mb-3">
+                                <label for="edit-interview-date" class="form-label">Interview Date</label>
+                                <input type="datetime-local" class="form-control" name="interview_date" id="edit-interview-date">
+                              </div>
+                              <div class="mb-3">
+                                <label for="edit-follow-date" class="form-label">Follow-up Date</label>
+                                <input type="date" class="form-control" name="follow_date" id="edit-follow-date">
+                              </div>
+                              <div class="mb-3">
+                                <label for="edit-salary-range" class="form-label">Salary Range</label>
+                                <input type="text" class="form-control" name="salary_range" id="edit-salary-range">
+                              </div>
+                              <div class="mb-3">
+                                <label for="edit-job-type" class="form-label">Job Type</label>
+                                <input type="text" class="form-control" name="job_type" id="edit-job-type">
+                              </div>
+                              <div class="mb-3">
+                                <label for="edit-notes" class="form-label">Notes</label>
+                                <textarea class="form-control" name="notes" id="edit-notes" rows="3"></textarea>
+                              </div>
+                            </div>
+                            <div class="modal-footer">
+                              <button type="submit" class="btn btn-primary">Update</button>
+                              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            </div>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+
 
                     <!-- Job Applications Table -->
                     <div class="table-responsive">
